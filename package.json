@@ -1,0 +1,38 @@
+{
+  "name": "e-commerce-platform",
+  "version": "1.0.0",
+  "description": "Develop a robust backend application using Node.js, Express, MongoDB, and integrate a 3rd-party API to enhance the functionality of the application (An E-commerce Platform).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jxwatson251/E-commerce-Platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jxwatson251/E-commerce-Platform/issues"
+  },
+  "homepage": "https://github.com/jxwatson251/E-commerce-Platform#readme",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.21",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}
