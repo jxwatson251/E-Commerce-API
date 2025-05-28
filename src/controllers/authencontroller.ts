@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/authenMiddleware';
 
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
+
   try {
     const existing = await User.findOne({ $or: [{ email }, { username }] });
     if (existing) return res.status(400).json({ msg: 'User already exists' });
@@ -15,13 +16,15 @@ export const register = async (req: Request, res: Response) => {
     await user.save();
 
     res.status(201).json({ msg: 'User registered' });
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
@@ -31,7 +34,8 @@ export const login = async (req: Request, res: Response) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
     res.json({ token });
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -40,7 +44,8 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.user!.id).select('-password');
     res.json(user);
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -54,7 +59,8 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     ).select('-password');
 
     res.json(updated);
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 };

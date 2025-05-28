@@ -18,7 +18,8 @@ export const authenMiddleware = (req: AuthRequest, res: Response, next: NextFunc
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     req.user = { id: decoded.id };
     next();
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(401).json({ msg: 'Invalid token' });
   }
 };
