@@ -5,11 +5,12 @@ export interface AuthRequest extends Request {
   user?: { id: string };
 }
 
-export const authenMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({ msg: 'No token provided' });
+    res.status(401).json({ msg: 'No token provided' });
+    return;
   }
 
   const token = authHeader.split(' ')[1];
