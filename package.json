@@ -4,7 +4,8 @@
   "description": "Develop a robust backend application using Node.js, Express, MongoDB, and integrate a 3rd-party API to enhance the functionality of the application (An E-commerce Platform).",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
