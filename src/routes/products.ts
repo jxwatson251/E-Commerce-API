@@ -9,16 +9,16 @@ router.get('/', async (_: Request, res: Response) => {
   res.json(products);
 });
 
-router.get('/:id', async (req: Request, res: Response) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-    res.json(product);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: 'Invalid product ID' });
-  }
-});
+// router.get('/:id', async (req: Request, res: Response) => {
+//   try {
+//     const product = await Product.findById(req.params.id);
+//     if (!product) return res.status(404).json({ message: 'Product not found' });
+//     res.json(product);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(400).json({ message: 'Invalid product ID' });
+//   }
+// });
 
 router.post(
   '/',
@@ -46,47 +46,47 @@ router.post(
   }
 );
 
-router.put(
-  '/:id',
-  authenMiddleware,
-  async (req: Request, res: Response, next: NextFunction) => {
-    const authReq = req as AuthRequest;
+// router.put(
+//   '/:id',
+//   authenMiddleware,
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const authReq = req as AuthRequest;
 
-    try {
-      const product = await Product.findById(authReq.params.id);
-      if (!product) return res.status(404).json({ message: 'Product not found' });
-      if (product.userId !== authReq.user!.id)
-        return res.status(403).json({ message: 'Unauthorized' });
+//     try {
+//       const product = await Product.findById(authReq.params.id);
+//       if (!product) return res.status(404).json({ message: 'Product not found' });
+//       if (product.userId !== authReq.user!.id)
+//         return res.status(403).json({ message: 'Unauthorized' });
 
-      Object.assign(product, authReq.body);
-      await product.save();
-      res.json(product);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Failed to update product' });
-    }
-  }
-);
+//       Object.assign(product, authReq.body);
+//       await product.save();
+//       res.json(product);
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ message: 'Failed to update product' });
+//     }
+//   }
+// );
 
-router.delete(
-  '/:id',
-  authenMiddleware,
-  async (req: Request, res: Response, next: NextFunction) => {
-    const authReq = req as AuthRequest;
+// router.delete(
+//   '/:id',
+//   authenMiddleware,
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const authReq = req as AuthRequest;
 
-    try {
-      const product = await Product.findById(authReq.params.id);
-      if (!product) return res.status(404).json({ message: 'Product not found' });
-      if (product.userId !== authReq.user!.id)
-        return res.status(403).json({ message: 'Unauthorized' });
+//     try {
+//       const product = await Product.findById(authReq.params.id);
+//       if (!product) return res.status(404).json({ message: 'Product not found' });
+//       if (product.userId !== authReq.user!.id)
+//         return res.status(403).json({ message: 'Unauthorized' });
 
-      await product.remove();
-      res.json({ message: 'Product deleted' });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Failed to delete product' });
-    }
-  }
-);
+//       await product.remove();
+//       res.json({ message: 'Product deleted' });
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ message: 'Failed to delete product' });
+//     }
+//   }
+// );
 
 export default router;
