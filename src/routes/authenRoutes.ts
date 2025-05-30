@@ -4,8 +4,9 @@ import { authenMiddleware } from '../middleware/authenMiddleware';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
+router.post('/register', authenMiddleware, register);
+router.post('/login', authenMiddleware, login);
+
 router.get('/profile', authenMiddleware, getProfile);
 router.put('/profile', authenMiddleware, updateProfile);
 
