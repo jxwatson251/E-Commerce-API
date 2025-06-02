@@ -48,21 +48,25 @@ EXCHANGE_API_URL=https://api.exchangerate-api.com/v4/latest/USD
 4.	Start the server
 npm start
 
-# Authentication Endpoints
-Endpoint                      Method                      Description
-/api/auth/register            POST                        Register a new user
-/api/auth/login               POST                        Login and receive JWT
-/api/users/me                 GET                         Get user profile (auth required)
-/api/users/me                 PUT                         Update profile (auth required)
+## Authentication Endpoints
 
-# Product Endpoints
-Endpoint                              Method       Access           Description
-/api/products                         GET          Public           Get all products
-/api/products/:id                     GET          Public           Get product by ID
-/api/products                         POST         Authenticated    Create a new product
-/api/products/:id                     PUT          Authenticated    Update product (owner only)
-/api/products/:id                     DELETE       Authenticated    Delete product (owner only)
-/api/products/:id/price-in/:currency  GET          Public           Get product price in another currency
+| Endpoint           | Method | Description              |
+|--------------------|--------|--------------------------|
+| /api/auth/register | POST   | Register a new user      |
+| /api/auth/login    | POST   | Login and receive JWT    |
+| /api/users/me      | GET    | Get user profile (auth)  |
+| /api/users/me      | PUT    | Update profile (auth)    |
+
+## Product Endpoints
+
+| Endpoint                              | Method | Access        | Description                          |
+|---------------------------------------|--------|---------------|--------------------------------------|
+| /api/products                         | GET    | Public        | Get all products                     |
+| /api/products/:id                     | GET    | Public        | Get product by ID                    |
+| /api/products                         | POST   | Authenticated | Create a new product                 |
+| /api/products/:id                     | PUT    | Authenticated | Update product (owner only)          |
+| /api/products/:id                     | DELETE | Authenticated | Delete product (owner only)          |
+| /api/products/:id/price-in/:currency  | GET    | Public        | Get price in another currency        |
 
 # Validation & Error Handling
 •	Request validation via Joi
