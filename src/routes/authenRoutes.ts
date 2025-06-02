@@ -10,4 +10,4 @@ router.post('/login', authenMiddleware, login);
 router.get('/profile', authenMiddleware, getProfile);
 router.put('/profile', authenMiddleware, updateProfile);
 
-export default router;
+export default router
