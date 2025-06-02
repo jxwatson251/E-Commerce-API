@@ -24,7 +24,7 @@ export const loginSchema = Joi.object({
   password: Joi.string().required().messages({
     'string.empty':'Password is required',
   }),
-});
+})
 
 export const productSchema = Joi.object({
   name: Joi.string().required().messages({
