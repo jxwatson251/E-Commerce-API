@@ -12,7 +12,7 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [{ url: 'http://localhost:5000' }],
   },
-  apis: ['./src/routes'],
+  apis: ['./src/routes/*.ts']
 };
 
 const swaggerSpec = swaggerJSDoc(options);
