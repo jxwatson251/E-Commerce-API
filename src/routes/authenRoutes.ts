@@ -1,3 +1,13 @@
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Get all products
+ *     responses:
+ *       200:
+ *         description: A list of products
+ */
+
 import { Router } from 'express';
 import { register, login, getProfile, updateProfile } from '../controllers/authencontroller';
 import { authenMiddleware } from '../middleware/authenMiddleware';
