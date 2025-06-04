@@ -111,4 +111,4 @@ if (require.main === module) {
   seedDatabase();
 }
 
-export { seedDatabase, sampleProducts };
+export { seedDatabase, sampleProducts }
