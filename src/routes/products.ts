@@ -101,6 +101,7 @@ import Product from '../models/Product';
 import { authenMiddleware, AuthRequest } from '../middleware/authenMiddleware';
 import { validateBody } from '../middleware/validate';
 import { productSchema } from '../utils/validator';
+import { getProductPriceInCurrency } from '../controllers/currencyController';
 
 const router = express.Router();
 
@@ -122,6 +123,8 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     res.status(400).json({ message: 'Invalid product ID' });
   }
 });
+
+router.get('/:id/price-in/:currency', getProductPriceInCurrency);
 
 router.post(
   '/',
@@ -206,4 +209,4 @@ router.delete(
   }
 );
 
-export default router;
+export default router
