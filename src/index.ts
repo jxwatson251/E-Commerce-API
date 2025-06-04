@@ -21,4 +21,4 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 import { setupSwagger } from './config/swagger';
 
-setupSwagger(app);
+setupSwagger(app)
