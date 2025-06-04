@@ -1,3 +1,13 @@
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Get all products
+ *     responses:
+ *       200:
+ *         description: A list of products
+ */
+
 import express, { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 import Product from '../models/Product';
