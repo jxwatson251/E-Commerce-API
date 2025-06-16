@@ -1,8 +1,7 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/User';
-import { AuthRequest } from '../middleware/authenMiddleware';
+import User from '../models/User';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const { username, email, password } = req.body;
@@ -43,41 +42,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
     res.json({ token });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-};
-
-export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const user = await User.findById(req.user!.id).select('-password');
-    if (!user) {
-      res.status(404).json({ msg: 'User not found' });
-      return;
-    }
-
-    res.json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server error' });
-  }
-};
-
-export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const updated = await User.findByIdAndUpdate(
-      req.user!.id,
-      { $set: req.body },
-      { new: true }
-    ).select('-password');
-
-    if (!updated) {
-      res.status(404).json({ msg: 'User not found' });
-      return;
-    }
-
-    res.json(updated);
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
