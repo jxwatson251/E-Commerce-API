@@ -12,7 +12,7 @@ export const registerSchema = Joi.object({
   }),
   password: Joi.string().min(6).required().messages({
     'string.empty':'Password is required',
-    'string.min':'Password should have a minimum length of 8',
+    'string.min':'Password should have a minimum length of 6',
   }),
 });
 
@@ -24,7 +24,14 @@ export const loginSchema = Joi.object({
   password: Joi.string().required().messages({
     'string.empty':'Password is required',
   }),
-})
+});
+
+export const emailSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    'string.empty':'Email is required',
+    'string.email':'Please provide a valid email address',
+  }),
+});
 
 export const productSchema = Joi.object({
   name: Joi.string().required().messages({
@@ -45,4 +52,4 @@ export const productSchema = Joi.object({
   category: Joi.string().required().messages({
     'string.empty':'Category is required',
   }),
-})
+});

@@ -39,6 +39,9 @@
  *         email:
  *           type: string
  *           description: User's email
+ *         isEmailVerified:
+ *           type: boolean
+ *           description: Whether the user's email is verified
  *     LoginRequest:
  *       type: object
  *       required:
@@ -67,6 +70,15 @@
  *           items:
  *             type: string
  *           description: Array of validation error messages
+ *     EmailRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
  */
 
 /**
@@ -95,13 +107,84 @@
  *               properties:
  *                 msg:
  *                   type: string
- *                   example: "User registered"
+ *                   example: "User registered successfully. Please check your email to verify your account."
+ *                 emailSent:
+ *                   type: boolean
+ *                   example: true
  *       400:
  *         description: Validation error or user already exists
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/auth/verify-email:
+ *   get:
+ *     summary: Verify user email
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email verification token
+ *         example: "abc123def456ghi789jkl012mno345pq"
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "Email verified successfully. You can now log in."
+ *       400:
+ *         description: Invalid or expired verification token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/auth/resend-verification:
+ *   post:
+ *     summary: Resend email verification
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/EmailRequest'
+ *           example:
+ *             email: "john@example.com"
+ *     responses:
+ *       200:
+ *         description: Verification email sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "Verification email sent successfully"
+ *       400:
+ *         description: Email already verified
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Server error
  */
@@ -129,11 +212,20 @@
  *             schema:
  *               $ref: '#/components/schemas/TokenResponse'
  *       400:
- *         description: Invalid credentials
+ *         description: Invalid credentials or email not verified
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/ErrorResponse'
+ *                 - type: object
+ *                   properties:
+ *                     msg:
+ *                       type: string
+ *                       example: "Please verify your email before logging in"
+ *                     emailVerified:
+ *                       type: boolean
+ *                       example: false
  *       500:
  *         description: Server error
  */
@@ -197,14 +289,17 @@
  */
 
 import { Router } from 'express';
-import { register, login, getProfile, updateProfile } from '../controllers/authencontroller';
+import { register, login, verifyEmail, resendVerificationEmail } from '../controllers/authencontroller';
+import { getProfile, updateProfile, } from '../controllers/userController';
 import { authenMiddleware } from '../middleware/authenMiddleware';
 import { validateBody } from '../middleware/validate';
-import { registerSchema, loginSchema } from '../utils/validator';
+import { registerSchema, loginSchema, emailSchema } from '../utils/validator';
 
 const router = Router();
 
 router.post('/register', validateBody(registerSchema), register);
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification', validateBody(emailSchema), resendVerificationEmail);
 router.post('/login', validateBody(loginSchema), login);
 
 router.get('/profile', authenMiddleware, getProfile);
