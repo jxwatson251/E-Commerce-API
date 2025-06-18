@@ -70,7 +70,7 @@ class EmailService {
             <a href="${verificationUrl}" class="button">Verify Email Address</a>
             <p>If the button doesn't work, you can also copy and paste the following link into your browser:</p>
             <p><a href="${verificationUrl}">${verificationUrl}</a></p>
-            <p><strong>This link will expire in 24 hours.</strong></p>
+            <p><strong>This link will expire in 2 hours.</strong></p>
             <p>If you didn't create an account with us, please ignore this email.</p>
           </div>
           <div class="footer">

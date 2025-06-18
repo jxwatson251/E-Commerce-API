@@ -16,7 +16,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const hashed = await bcrypt.hash(password, 10);
     const emailVerificationToken = emailService.generateVerificationToken();
-    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const emailVerificationExpires = new Date(Date.now() + 2 * 60 * 60 * 1000);
 
     const user = new User({ 
       username, 
@@ -100,7 +100,7 @@ export const resendVerificationEmail = async (req: Request, res: Response): Prom
     }
 
     const emailVerificationToken = emailService.generateVerificationToken();
-    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const emailVerificationExpires = new Date(Date.now() + 2 * 60 * 60 * 1000);
 
     user.emailVerificationToken = emailVerificationToken;
     user.emailVerificationExpires = emailVerificationExpires;
