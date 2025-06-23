@@ -79,6 +79,19 @@
  *           type: string
  *           format: email
  *           description: User's email address
+ *     ResetPasswordRequest:
+ *       type: object
+ *       required:
+ *         - token
+ *         - newPassword
+ *       properties:
+ *         token:
+ *           type: string
+ *           description: Password reset token
+ *         newPassword:
+ *           type: string
+ *           minLength: 6
+ *           description: New password
  */
 
 /**
@@ -232,6 +245,119 @@
 
 /**
  * @swagger
+ * /api/auth/request-password-reset:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/EmailRequest'
+ *           example:
+ *             email: "john@example.com"
+ *     responses:
+ *       200:
+ *         description: Password reset email sent (if user exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "If a user with that email exists, a password reset link has been sent."
+ *                 emailSent:
+ *                   type: boolean
+ *                   example: true
+ *       500:
+ *         description: Server error or failed to send email
+ */
+
+/**
+ * @swagger
+ * /api/auth/verify-reset-token:
+ *   get:
+ *     summary: Verify password reset token
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Password reset token
+ *         example: "def456ghi789jkl012mno345pqr678st"
+ *     responses:
+ *       200:
+ *         description: Reset token is valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "Reset token is valid"
+ *                 valid:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Invalid or expired reset token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "Invalid or expired password reset token"
+ *                 valid:
+ *                   type: boolean
+ *                   example: false
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset password with token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ResetPasswordRequest'
+ *           example:
+ *             token: "def456ghi789jkl012mno345pqr678st"
+ *             newPassword: "newpassword123"
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: "Password has been reset successfully. You can now log in with your new password."
+ *       400:
+ *         description: Invalid or expired reset token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
  * /api/auth/profile:
  *   get:
  *     summary: Get user profile
@@ -290,10 +416,11 @@
 
 import { Router } from 'express';
 import { register, login, verifyEmail, resendVerificationEmail } from '../controllers/authencontroller';
+import { requestPasswordReset, resetPassword, verifyResetToken } from '../controllers/passwordResetController';
 import { getProfile, updateProfile, } from '../controllers/userController';
 import { authenMiddleware } from '../middleware/authenMiddleware';
 import { validateBody } from '../middleware/validate';
-import { registerSchema, loginSchema, emailSchema } from '../utils/validator';
+import { registerSchema, loginSchema, emailSchema, resetPasswordSchema } from '../utils/validator';
 
 const router = Router();
 
@@ -301,6 +428,10 @@ router.post('/register', validateBody(registerSchema), register);
 router.get('/verify-email', verifyEmail);
 router.post('/resend-verification', validateBody(emailSchema), resendVerificationEmail);
 router.post('/login', validateBody(loginSchema), login);
+
+router.post('/request-password-reset', validateBody(emailSchema), requestPasswordReset);
+router.get('/verify-reset-token', verifyResetToken);
+router.post('/reset-password', validateBody(resetPasswordSchema), resetPassword);
 
 router.get('/profile', authenMiddleware, getProfile);
 router.put('/profile', authenMiddleware, updateProfile);
