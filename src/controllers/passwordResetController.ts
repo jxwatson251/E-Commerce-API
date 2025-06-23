@@ -16,7 +16,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
     }
 
     const passwordResetToken = emailService.generateVerificationToken();
-    const passwordResetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    const passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     user.passwordResetToken = passwordResetToken;
     user.passwordResetExpires = passwordResetExpires;
