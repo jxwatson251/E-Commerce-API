@@ -95,12 +95,96 @@
  *         description: Internal server error
  */
 
+/**
+ * @swagger
+ * /api/products/delete-multiple:
+ *   delete:
+ *     summary: Delete multiple products by IDs
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - productIds
+ *             properties:
+ *               productIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of product IDs to delete
+ *                 minItems: 1
+ *           example:
+ *             productIds: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *     responses:
+ *       200:
+ *         description: Products deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 deletedCount:
+ *                   type: number
+ *                 deletedIds:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *             example:
+ *               message: "Products deleted successfully"
+ *               deletedCount: 2
+ *               deletedIds: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *       400:
+ *         description: Invalid request or no products found to delete
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - User doesn't own some of the products
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/products/delete-all:
+ *   delete:
+ *     summary: Delete all products belonging to the authenticated user
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All user products deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 deletedCount:
+ *                   type: number
+ *             example:
+ *               message: "All products deleted successfully"
+ *               deletedCount: 5
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+
 import express, { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 import Product from '../models/Product';
 import { authenMiddleware, AuthRequest } from '../middleware/authenMiddleware';
 import { validateBody } from '../middleware/validate';
-import { productSchema } from '../utils/validator';
+import { productSchema, deleteMultipleSchema } from '../utils/validator';
 import { getProductPriceInCurrency } from '../controllers/currencyController';
 
 const router = express.Router();
@@ -201,10 +285,90 @@ router.delete(
       }
 
       await product.deleteOne();
-      res.json({ message: 'Product deleted' });
+      res.json({ message: 'Product deleted successfully' });
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Failed to delete product' });
+    }
+  }
+);
+
+router.delete(
+  '/delete-multiple',
+  authenMiddleware,
+  validateBody(deleteMultipleSchema),
+  async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthRequest;
+    const { productIds } = authReq.body;
+
+    try {
+      const validIds = productIds.filter((id: string) => Types.ObjectId.isValid(id));
+      if (validIds.length !== productIds.length) {
+        res.status(400).json({ 
+          message: 'One or more invalid product IDs provided',
+          invalidIds: productIds.filter((id: string) => !Types.ObjectId.isValid(id))
+        });
+        return;
+      }
+
+      const products = await Product.find({
+        _id: { $in: validIds },
+        userId: authReq.user!.id
+      });
+
+      if (products.length === 0) {
+        res.status(404).json({ 
+          message: 'No products found that belong to you with the provided IDs' 
+        });
+        return;
+      }
+
+      const foundIds = products.map(p => p._id.toString());
+      const unauthorizedIds = validIds.filter((id: string) => !foundIds.includes(id));
+      
+      if (unauthorizedIds.length > 0) {
+        res.status(403).json({ 
+          message: 'You are not authorized to delete some of the requested products',
+          unauthorizedIds 
+        });
+        return;
+      }
+
+      const result = await Product.deleteMany({
+        _id: { $in: validIds },
+        userId: authReq.user!.id
+      });
+
+      res.json({
+        message: 'Products deleted successfully',
+        deletedCount: result.deletedCount,
+        deletedIds: foundIds
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Failed to delete products' });
+    }
+  }
+);
+
+router.delete(
+  '/delete-all',
+  authenMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthRequest;
+
+    try {
+      const result = await Product.deleteMany({ userId: authReq.user!.id });
+      
+      res.json({
+        message: result.deletedCount > 0 
+          ? 'All products deleted successfully' 
+          : 'No products found to delete',
+        deletedCount: result.deletedCount
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Failed to delete all products' });
     }
   }
 );
