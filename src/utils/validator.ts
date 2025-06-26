@@ -64,15 +64,15 @@ export const productSchema = Joi.object({
   }),
 });
 
-export const deleteMultipleSchema = Joi.object({
+export const bulkDeleteSchema = Joi.object({
   productIds: Joi.array()
-    .items(Joi.string().pattern(/^[0-9a-fA-F]{24}$/))
+    .items(Joi.string().required())
     .min(1)
     .required()
     .messages({
       'array.base': 'Product IDs must be an array',
       'array.min': 'At least one product ID is required',
-      'array.includes': 'All product IDs must be valid MongoDB ObjectIds',
+      'array.includes': 'All product IDs must be strings',
       'any.required': 'Product IDs are required',
     }),
 });

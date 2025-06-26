@@ -97,7 +97,47 @@
 
 /**
  * @swagger
- * /api/products/delete-multiple:
+ * /api/products/{id}:
+ *   delete:
+ *     summary: Delete a single product
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *         example: "507f1f77bcf86cd799439011"
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Product deleted successfully"
+ *                 deletedProduct:
+ *                   type: object
+ *                   description: The deleted product details
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       403:
+ *         description: Forbidden - User doesn't own the product
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /api/products/bulk-delete:
  *   delete:
  *     summary: Delete multiple products by IDs
  *     tags: [Products]
@@ -116,10 +156,10 @@
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of product IDs to delete
  *                 minItems: 1
- *           example:
- *             productIds: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *                 description: Array of product IDs to delete
+ *             example:
+ *               productIds: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012", "507f1f77bcf86cd799439013"]
  *     responses:
  *       200:
  *         description: Products deleted successfully
@@ -130,22 +170,24 @@
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "3 products deleted successfully"
  *                 deletedCount:
  *                   type: number
- *                 deletedIds:
+ *                   example: 3
+ *                 failedDeletions:
  *                   type: array
  *                   items:
- *                     type: string
- *             example:
- *               message: "Products deleted successfully"
- *               deletedCount: 2
- *               deletedIds: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *                     type: object
+ *                     properties:
+ *                       productId:
+ *                         type: string
+ *                       reason:
+ *                         type: string
+ *                   description: Products that failed to delete with reasons
  *       400:
- *         description: Invalid request or no products found to delete
+ *         description: Invalid request - no product IDs provided or invalid format
  *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - User doesn't own some of the products
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
@@ -168,13 +210,12 @@
  *               properties:
  *                 message:
  *                   type: string
+ *                   example: "All products deleted successfully"
  *                 deletedCount:
  *                   type: number
- *             example:
- *               message: "All products deleted successfully"
- *               deletedCount: 5
+ *                   example: 15
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Invalid or missing token
  *       500:
  *         description: Server error
  */
@@ -184,7 +225,7 @@ import { Types } from 'mongoose';
 import Product from '../models/Product';
 import { authenMiddleware, AuthRequest } from '../middleware/authenMiddleware';
 import { validateBody } from '../middleware/validate';
-import { productSchema, deleteMultipleSchema } from '../utils/validator';
+import { productSchema, bulkDeleteSchema } from '../utils/validator';
 import { getProductPriceInCurrency } from '../controllers/currencyController';
 
 const router = express.Router();
@@ -285,7 +326,14 @@ router.delete(
       }
 
       await product.deleteOne();
-      res.json({ message: 'Product deleted successfully' });
+      res.json({ 
+        message: 'Product deleted successfully',
+        deletedProduct: {
+          id: product._id,
+          name: product.name,
+          price: product.price
+        }
+      });
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Failed to delete product' });
@@ -294,56 +342,66 @@ router.delete(
 );
 
 router.delete(
-  '/delete-multiple',
+  '/bulk-delete',
   authenMiddleware,
-  validateBody(deleteMultipleSchema),
+  validateBody(bulkDeleteSchema),
   async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthRequest;
     const { productIds } = authReq.body;
 
     try {
-      const validIds = productIds.filter((id: string) => Types.ObjectId.isValid(id));
-      if (validIds.length !== productIds.length) {
-        res.status(400).json({ 
-          message: 'One or more invalid product IDs provided',
-          invalidIds: productIds.filter((id: string) => !Types.ObjectId.isValid(id))
-        });
-        return;
+      const failedDeletions: Array<{ productId: string; reason: string }> = [];
+      let deletedCount = 0;
+
+      for (const productId of productIds) {
+        try {
+          if (!Types.ObjectId.isValid(productId)) {
+            failedDeletions.push({
+              productId,
+              reason: 'Invalid product ID format'
+            });
+            continue;
+          }
+
+          const product = await Product.findById(productId);
+          
+          if (!product) {
+            failedDeletions.push({
+              productId,
+              reason: 'Product not found'
+            });
+            continue;
+          }
+
+          if (product.userId.toString() !== authReq.user!.id) {
+            failedDeletions.push({
+              productId,
+              reason: 'Unauthorized - You do not own this product'
+            });
+            continue;
+          }
+
+          await product.deleteOne();
+          deletedCount++;
+
+        } catch (error) {
+          failedDeletions.push({
+            productId,
+            reason: 'Failed to delete product'
+          });
+        }
       }
 
-      const products = await Product.find({
-        _id: { $in: validIds },
-        userId: authReq.user!.id
-      });
+      const response: any = {
+        message: `${deletedCount} product${deletedCount !== 1 ? 's' : ''} deleted successfully`,
+        deletedCount
+      };
 
-      if (products.length === 0) {
-        res.status(404).json({ 
-          message: 'No products found that belong to you with the provided IDs' 
-        });
-        return;
+      if (failedDeletions.length > 0) {
+        response.failedDeletions = failedDeletions;
       }
 
-      const foundIds = products.map(p => p._id.toString());
-      const unauthorizedIds = validIds.filter((id: string) => !foundIds.includes(id));
-      
-      if (unauthorizedIds.length > 0) {
-        res.status(403).json({ 
-          message: 'You are not authorized to delete some of the requested products',
-          unauthorizedIds 
-        });
-        return;
-      }
-
-      const result = await Product.deleteMany({
-        _id: { $in: validIds },
-        userId: authReq.user!.id
-      });
-
-      res.json({
-        message: 'Products deleted successfully',
-        deletedCount: result.deletedCount,
-        deletedIds: foundIds
-      });
+      res.json(response);
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Failed to delete products' });
@@ -358,12 +416,12 @@ router.delete(
     const authReq = req as AuthRequest;
 
     try {
-      const result = await Product.deleteMany({ userId: authReq.user!.id });
-      
+      const result = await Product.deleteMany({ 
+        userId: new Types.ObjectId(authReq.user!.id) 
+      });
+
       res.json({
-        message: result.deletedCount > 0 
-          ? 'All products deleted successfully' 
-          : 'No products found to delete',
+        message: 'All products deleted successfully',
         deletedCount: result.deletedCount
       });
     } catch (err) {
