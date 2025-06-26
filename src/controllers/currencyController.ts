@@ -65,4 +65,4 @@ export const getProductPriceInCurrency = async (req: Request, res: Response): Pr
       res.status(500).json({ message: 'Internal server error' });
     }
   }
-};
+}

@@ -436,4 +436,4 @@ router.post('/reset-password', validateBody(resetPasswordSchema), resetPassword)
 router.get('/profile', authenMiddleware, getProfile);
 router.put('/profile', authenMiddleware, updateProfile);
 
-export default router;
+export default router

@@ -15,9 +15,9 @@
     "type": "git",
     "url": "git+https://github.com/jxwatson251/E-Commerce-API.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["CRUD", "API"],
+  "author": "Jason A. Watson",
+  "license": "CITC",
   "bugs": {
     "url": "https://github.com/jxwatson251/E-Commerce-API/issues"
   },

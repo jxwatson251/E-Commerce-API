@@ -75,4 +75,4 @@ export const bulkDeleteSchema = Joi.object({
       'array.includes': 'All product IDs must be strings',
       'any.required': 'Product IDs are required',
     }),
-});
+})

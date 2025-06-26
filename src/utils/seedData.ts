@@ -66,8 +66,7 @@ const sampleProducts = [
 const seedDatabase = async () => {
   try {
     await connectDB();
-    
-    // Create a sample user first (needed for userId in products)
+
     const existingUser = await User.findOne({ email: 'admin@example.com' });
     let userId;
     
@@ -86,11 +85,9 @@ const seedDatabase = async () => {
       console.log('Using existing sample user');
     }
 
-    // Clear existing products
     await Product.deleteMany({});
     console.log('Existing products cleared');
 
-    // Add sample products
     const productsWithUserId = sampleProducts.map(product => ({
       ...product,
       userId: userId
@@ -106,7 +103,6 @@ const seedDatabase = async () => {
   }
 };
 
-// Run the seeder if this file is executed directly
 if (require.main === module) {
   seedDatabase();
 }
